@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins
 from rest_framework import generics
+from django.db import transaction
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -26,20 +27,24 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
-class UFList(mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
-                  generics.GenericAPIView):
+class UFList(generics.ListCreateAPIView):
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-    
-    # TODO, allways get a list of ufs to add
+    queryset = UF.objects.all()
+    serializer_class = UFSerializer
+
     def post(self, request, format=None):
-        serializer = UFSerializer(data=request.data)
+        serializer = UFSerializer(data=request.data, many=True)
         if serializer.is_valid():
-            serializer.save()
+            self.save_all(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    def save_all(self, data):
+        for uf in data:
+            entry = UF(date=uf['date'], value=uf['value'])
+            entry.save()
+
 
 
 class UFtoCLP(APIView):
