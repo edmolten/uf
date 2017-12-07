@@ -1,0 +1,10 @@
+*.pyc
+.Python
+bin
+include
+lib
+build
+uf_env
+*~
+db.sqlite3
+*.idea
