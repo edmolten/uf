@@ -42,5 +42,5 @@ class UFtoCLP(APIView):
         amount = int(request.query_params['value'])
         uf = self.get_object(date)
         clp = uf.getCLP(amount)
-        return Response(clp)
+        return Response(float(clp))
 
