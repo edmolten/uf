@@ -2,3 +2,4 @@ django==2.0
 djangorestframework==3.7.3
 scrapy==1.4
 scrapy-djangoitem==1.1.1
+requests==2.18.4
