@@ -1,6 +1,6 @@
-from scrapy_djangoitem import DjangoItem
-from uf_app.models import UF
+import scrapy
 
 
-class ScrapyUF(DjangoItem):
-    django_model = UF
+class ScrapyUF(scrapy.Item):
+    date = scrapy.Field()
+    value = scrapy.Field()
