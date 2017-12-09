@@ -5,6 +5,9 @@ import requests
 from scrapy.crawler import CrawlerProcess, CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
+import datetime
+
+
 class UFSpider(Spider):
     name = 'bc_spider'
     allowed_domains = ["si3.bcentral.cl"]
@@ -12,28 +15,30 @@ class UFSpider(Spider):
     start_urls = [url]
 
     @staticmethod
-    def run(start_year, end_year):
+    def crawl(start_year, end_year):
         runner = CrawlerRunner()
         d = runner.crawl(UFSpider, start_year=start_year, end_year=end_year)
         d.addBoth(lambda _: reactor.stop())
         reactor.run()
 
-    def __init__(self, start_year, end_year):
-        self.result = []
-        self.start_year = start_year
-        self.end_year = end_year
+    @staticmethod
+    def crawl_until_available(start_year):
+        today = datetime.datetime.today()
+        if today.month == 12 and today.day >= 9:
+            UFSpider.crawl(start_year, today.year + 1)
+        else:
+            UFSpider.crawl(start_year, today.year)
 
+    @staticmethod
+    def populate():
+        today = datetime.datetime.today()
+        if today.month == 12 and today.day >= 9:
+            UFSpider.crawl(1977, today.year + 1)
+        else:
+            UFSpider.crawl(1977, today.year)
 
-    def parse(self, response):
-        self.result = self.result + self.crawl_table(response)  # current year
-        for year in range(self.start_year, self.end_year):
-            yield scrapy.FormRequest.from_response(
-                response,
-                formdata={'DrDwnFechas': str(year)},
-                callback=self.parse_results,
-            )
-
-    def crawl_table(self, response):
+    @staticmethod
+    def crawl_table(response):
         table = response.xpath('//table[@id="gr"]//tr')
         year = response.xpath('//*[@id="lblAnioValor"]/text()').extract_first()
         day = 1
@@ -46,13 +51,28 @@ class UFSpider(Spider):
             day += 1
         return result
 
+    def __init__(self, start_year, end_year):
+        self.result = []
+        self.start_year = start_year
+        self.end_year = end_year
+        super().__init__(self)
+
+    def parse(self, response):
+        self.result = self.result + self.crawl_table(response)  # current year
+        for year in range(self.start_year, self.end_year):
+            yield scrapy.FormRequest.from_response(
+                response,
+                formdata={'DrDwnFechas': str(year)},
+                callback=self.parse_results,
+            )
+
     def parse_results(self, response):
         self.result = self.result + self.crawl_table(response)
 
     def closed(self, cause):
         self.result = sorted(self.result, key=lambda d: d['date'])
         url = "http://localhost:8000/uf/"
-        response = requests.post(url, json=self.result, headers={'Content-Type':'application/json'})
+        response = requests.post(url, json=self.result, headers={'Content-Type': 'application/json'})
         if response.status_code != 201:
             self.logger.error("Couldn't store data")
 
