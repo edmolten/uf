@@ -12,10 +12,28 @@ from uf_scrapy.uf_scrapy.spiders.uf_spider import UFSpider
 from scrapy.utils.project import get_project_settings
 
 
-class UFList(generics.ListCreateAPIView):
-    queryset = UF.objects.all()
-    serializer_class = UFSerializer
+class UFList(APIView):
 
+    @staticmethod
+    def missing_data(data):
+        last = data.last().date
+        next = last + datetime.timedelta(days=1)
+        return UFtoCLP.available(next)
+
+    def get(self, request):
+        today = datetime.datetime.today()
+        data = UF.objects.all()
+        if len(data) == 0:
+            UFSpider.run(1977, today.year)
+        elif UFList.missing_data(data):
+            last_year = data.last().date.year
+            if today.month == 12 and today.day > 10:
+                UFSpider.run(last_year, today.year+1)
+            else:
+                UFSpider.run(last_year, today.year)
+        data = UF.objects.all()
+        serializer = UFSerializer(data, many=True)
+        return Response(serializer.data)
 
 class UFCreateMany(APIView):
     def post(self, request):
@@ -47,7 +65,7 @@ class UFtoCLP(APIView):
         try:
             ymd = list(map(int, date.split('-')))
             obj_date = datetime.date(ymd[0], ymd[1], ymd[2])
-            if not self.available(obj_date):
+            if not UFtoCLP.available(obj_date):
                 print("not available")
                 raise ValueError
             return UF.objects.get(pk=date)
@@ -56,7 +74,8 @@ class UFtoCLP(APIView):
         except UF.DoesNotExist:
             return None
 
-    def available(self, obj_date):
+    @staticmethod
+    def available( obj_date):
         today = datetime.datetime.today()
         if today.month == 12:
             if today.day >= 10:
