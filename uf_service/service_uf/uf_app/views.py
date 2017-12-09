@@ -16,19 +16,7 @@ from scrapy.utils.project import get_project_settings
 
 class UFList(APIView):
 
-    @staticmethod
-    def missing_data(data):
-        last = data.last().date
-        next = last + datetime.timedelta(days=1)
-        return UFtoCLP.available(next)
-
     def get(self, request):
-        data = UF.objects.all()
-        if len(data) == 0:
-            UFSpider.populate()
-        elif UFList.missing_data(data):
-            last_year = data.last().date.year
-            UFSpider.crawl_until_available(last_year)
         data = UF.objects.all()
         serializer = UFSerializer(data, many=True)
         return Response(serializer.data)
@@ -59,14 +47,5 @@ class UFtoCLP(APIView):
             clp = uf.get_price(amount)
             return Response(float(clp))
         else:
-            last_uf = UF.objects.last()
-            if last_uf:
-                UFSpider.crawl_until_available(last_uf.date.year)
-            else:
-                UFSpider.populate()
-            uf = UF.get(date)
-            if uf:
-                clp = uf.get_price(amount)
-                return Response(float(clp))
-        raise Http404
+            raise Http404
 
