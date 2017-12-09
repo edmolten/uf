@@ -1,23 +1,32 @@
 from scrapy.spiders import Spider
-from uf_scrapy.items import UF
+from uf_scrapy.uf_scrapy.items import UF
 import scrapy
-import datetime
 import requests
-
+from scrapy.crawler import CrawlerProcess, CrawlerRunner
+from scrapy.utils.project import get_project_settings
+from twisted.internet import reactor
 class UFSpider(Spider):
     name = 'bc_spider'
     allowed_domains = ["si3.bcentral.cl"]
     url = 'http://si3.bcentral.cl/IndicadoresSiete/secure/Serie.aspx?gcode=UF&param=RABmAFYAWQB3AGYAaQBuAEkALQAzADUAbgBNAGgAaAAkADUAVwBQAC4AbQBYADAARwBOAGUAYwBjACMAQQBaAHAARgBhAGcAUABTAGUAYwBsAEMAMQA0AE0AawBLAF8AdQBDACQASABzAG0AXwA2AHQAawBvAFcAZwBKAEwAegBzAF8AbgBMAHIAYgBDAC4ARQA3AFUAVwB4AFIAWQBhAEEAOABkAHkAZwAxAEEARAA%3d'
     start_urls = [url]
 
+    @staticmethod
+    def run(start_year, end_year):
+        runner = CrawlerRunner()
+        d = runner.crawl(UFSpider, start_year=start_year, end_year=end_year)
+        d.addBoth(lambda _: reactor.stop())
+        reactor.run()
+
     def __init__(self, start_year, end_year):
         self.result = []
-
+        self.start_year = start_year
+        self.end_year = end_year
 
 
     def parse(self, response):
         self.result = self.result + self.crawl_table(response)  # current year
-        for year in range(1977, datetime.datetime.now().year):
+        for year in range(self.start_year, self.end_year):
             yield scrapy.FormRequest.from_response(
                 response,
                 formdata={'DrDwnFechas': str(year)},
@@ -41,7 +50,6 @@ class UFSpider(Spider):
         self.result = self.result + self.crawl_table(response)
 
     def closed(self, cause):
-
         self.result = sorted(self.result, key=lambda d: d['date'])
         url = "http://localhost:8000/uf/"
         response = requests.post(url, json=self.result, headers={'Content-Type':'application/json'})

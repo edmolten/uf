@@ -16,3 +16,9 @@ class ApiTest(TestCase):
             response = client.get(url, {'date': date, 'value': value})
             content = float(response.content.decode('utf-8'))
             self.assertEqual("{:.2f}".format(content), expected)
+
+    # TODO
+    def test_list(self):
+        url = "/uf/list/"
+        client = Client()
+        response = client.get(url)
