@@ -1,9 +1,12 @@
 from subprocess import run
 from datetime import datetime
+from constants import *
+import sys
 
-scrapy_command = ['scrapy', 'crawl', 'uf_spider']
 today = datetime.today()
-if today.month == 12:
-    run(scrapy_command + ['-a', 'start_year='+str(today.year), '-a', 'end_year='+str(today.year +1)])
+scrapy_command = ['scrapy', 'crawl', SPIDER_NAME, '-a']
+if 'populate' in sys.argv:
+    scrapy_command += ['start_year=1977']
 else:
-    run(scrapy_command + ['-a', 'start_year='+str(today.year), '-a', 'end_year='+str(today.year)])
+    scrapy_command += ['start_year='+str(today.year)]
+run(scrapy_command)

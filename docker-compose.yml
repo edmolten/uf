@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  ufservice:
+    container_name: ufservice
+    command: [ "python", "manage.py", "runserver", "0.0.0.0:$PORT"]
+    build:
+      context: ./uf_service/service_uf
+    environment:
+      - PORT
+    ports:
+      - "${PORT}:${PORT}"
+  ufscrapy:
+    container_name: ufscrapy
+    build:
+      context: ./uf_scrapy
+      args:
+        - PORT
+    depends_on:
+      - "ufservice"
+    environment:
+      - PORT
+    links:
+      - "ufservice"

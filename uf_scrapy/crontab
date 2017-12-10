@@ -1,0 +1,1 @@
+* * 9 * * root . /root/envs.sh;cd /app && python /app/run.py >> /var/log/cron.log 2>&1

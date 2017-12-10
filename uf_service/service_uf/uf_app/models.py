@@ -1,6 +1,7 @@
 from django.db import models
 import datetime
 from django.http import Http404
+from uf_app.constants import *
 
 
 class UF(models.Model):
@@ -27,21 +28,22 @@ class UF(models.Model):
     def available(date):
         today = datetime.datetime.today()
         if today.month == 12:
-            if today.day >= 9:
-                return date <= datetime.date(today.year + 1, 1, 9)
+            if today.day > UF_UPDATE_DAY:
+                return date <= datetime.date(today.year + 1, 1, UF_UPDATE_DAY)
             else:
-                return date <= datetime.date(today.year, 12, 9)
+                return date <= datetime.date(today.year, 12, UF_UPDATE_DAY)
         else:
-            if today.day >= 9:
-                return date <= datetime.date(today.year, today.month + 1, 9)
+            if today.day > UF_UPDATE_DAY:
+                return date <= datetime.date(today.year, today.month + 1, UF_UPDATE_DAY)
             else:
-                return date <= datetime.date(today.year, today.month, 9)
+                return date <= datetime.date(today.year, today.month, UF_UPDATE_DAY)
 
     @staticmethod
     def filter(data):
         new_data = []
         for uf in data:
-            date = uf['date']
+            date = uf[DATE_FIELD]
             if not UF.objects.filter(date=date).exists():
-                new_data.append({'date': date, 'value': uf['value']})
+                new_data.append({DATE_FIELD: date,
+                                 VALUE_FIELD: uf[VALUE_FIELD]})
         return new_data
