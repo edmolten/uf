@@ -6,17 +6,11 @@ from uf_app.serializers import UFSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import generics
 from django.db import transaction
-import datetime
-from scrapy.crawler import CrawlerProcess
-from uf_scrapy.uf_scrapy.spiders.uf_spider import UFSpider
-from scrapy.utils.project import get_project_settings
 
 
 class UFList(APIView):
-
-    def get(self, request):
+    def get(self, _):
         data = UF.objects.all()
         serializer = UFSerializer(data, many=True)
         return Response(serializer.data)
