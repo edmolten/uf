@@ -17,6 +17,6 @@ the value in the `.env` file next to this file
 
 ## Test
 
-- You can manually test the service doing `curl` to `http://localhost:PORT/uf/list/` and
- `http://localhost:PORT/uf/price/?value=XXXX&date=yyyymmdd`
+- You can manually test the service with `curl` or a browser. Use `http://localhost:PORT/uf/list/` and
+ `http://localhost:PORT/uf/price/?value=XXXX&date=yyyymmdd`, changing the port 
 - You can also run the unittest with `docker exec -ti ufservice bash -c "python manage.py test uf_app"`

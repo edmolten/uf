@@ -1,4 +1,3 @@
-from django.http import Http404
 from uf_app.models import UF
 from uf_app.serializers import UFSerializer
 from rest_framework.views import APIView
