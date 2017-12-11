@@ -18,14 +18,14 @@ class UF(models.Model):
             obj_date = datetime.date(ymd[0], ymd[1], ymd[2])  # throws ValueError
             if not UF.available(obj_date):
                 raise ValueError
-            return UF.objects.get(pk=date)
-        except ValueError:
+            return UF.objects.get(pk=date)  # throws UF.DoesNotExist
+        except (ValueError, UF.DoesNotExist):
             raise Http404
-        except UF.DoesNotExist:
-            return None
 
     @staticmethod
     def available(date):
+        if date < datetime.date(1977, 8, 1):
+            return False
         today = datetime.datetime.today()
         if today.month == 12:
             if today.day > UF_UPDATE_DAY:

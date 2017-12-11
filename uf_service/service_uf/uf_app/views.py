@@ -6,13 +6,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 from uf_app.constants import *
+from rest_framework import generics
 
 
-class UFList(APIView):
-    def get(self, _):
-        data = UF.objects.all()
-        serializer = UFSerializer(data, many=True)
-        return Response(serializer.data)
+class UFList(generics.ListCreateAPIView):
+    queryset = UF.objects.all()
+    serializer_class = UFSerializer
 
 
 class UFCreateMany(APIView):
@@ -42,6 +41,3 @@ class UFtoCLP(APIView):
         if uf:
             clp = uf.get_price(amount)
             return Response(float(clp))
-        else:
-            raise Http404
-

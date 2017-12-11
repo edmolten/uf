@@ -8,6 +8,8 @@ RUN pip install -r requirements.txt
 ADD . /app/
 ARG PORT
 ENV PORT=${PORT}
+ARG HOST
+ENV HOST=${HOST}
 ADD crontab /etc/cron.d/uf-cron
 RUN chmod 0644 /etc/cron.d/uf-cron
 RUN touch /var/log/cron.log

@@ -4,6 +4,7 @@ from constants import *
 from scrapy import FormRequest
 from datetime import datetime
 import requests
+import json
 
 
 class UFSpider(Spider):
@@ -50,6 +51,8 @@ class UFSpider(Spider):
 
     def closed(self, _):
         self.result = sorted(self.result, key=lambda d: d['date'])
+        with open('test.json', 'w') as data_file:
+            json.dump(self.result, data_file)
         response = requests.post(API_CREATE_MANY_URL,
                                  json=self.result,
                                  headers={'Content-Type': 'application/json'})

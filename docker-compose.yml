@@ -16,9 +16,11 @@ services:
       context: ./uf_scrapy
       args:
         - PORT
+        - HOST
     depends_on:
       - "ufservice"
     environment:
       - PORT
+      - HOST
     links:
       - "ufservice"
